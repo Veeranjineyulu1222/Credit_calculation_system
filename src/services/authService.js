@@ -13,7 +13,15 @@ export function universityEmail(registerNumber) {
 export async function signUp(registerNumber, password) {
   if (!supabase) throw new Error('Supabase is not configured.')
   const email = universityEmail(registerNumber)
-  return supabase.auth.signUp({ email, password, options: { data: { register_number: registerNumber.trim() } } })
+  const redirectTo = import.meta.env.VITE_SITE_URL || window.location.origin
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectTo,
+      data: { register_number: registerNumber.trim() },
+    },
+  })
 }
 
 export async function signOut() {

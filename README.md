@@ -7,7 +7,9 @@ npm install
 npm run dev
 ```
 
-The Vite client reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Never put a Supabase service-role key in this file or in browser code.
+The Vite client reads `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_SITE_URL`. Set `VITE_SITE_URL` to the deployed frontend URL so Supabase confirmation emails return to the correct application. Never put a Supabase service-role key in this file or in browser code.
+
+In Supabase Dashboard, open **Authentication > URL Configuration** and set **Site URL** to `https://creditcalculationsystem.vercel.app`. Add `https://creditcalculationsystem.vercel.app/**` to **Redirect URLs**. Add your local Vite URL separately only if local email testing is needed.
 
 ## Database setup
 

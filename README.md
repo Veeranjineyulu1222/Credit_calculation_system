@@ -27,6 +27,10 @@ Run `supabase/tests/004_dynamic_credit_algorithm_test.sql` in a development data
 
 Apply `supabase/migrations/005_auth_rls_hardening.sql` after migrations `001` through `004`. The browser can read only authorized rows: students are restricted to the `student_id` in their own `user_profiles` row, faculty can read all academic rows, and neither browser role can write academic/configuration data. The dynamic-credit RPC keeps its existing ownership check.
 
+If an existing Auth user shows “Account awaiting academic access”, apply `supabase/migrations/006_backfill_existing_student_profiles.sql`. It maps existing `@klu.ac.in` users to a matching `public.students.student_id` and does not overwrite existing profiles.
+
+Apply `supabase/migrations/007_harden_student_profile_trigger.sql` for new accounts. It creates a student profile from either the signup register-number metadata or the university email prefix. Logout uses local Supabase scope so a global token-revocation failure does not block signing out of the current browser.
+
 Create test Auth users from Supabase Dashboard > Authentication > Users. Do not put credentials in source code. For a faculty test user, insert its Auth UUID through a trusted SQL editor/admin workflow:
 
 ```sql

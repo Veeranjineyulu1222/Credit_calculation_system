@@ -25,7 +25,7 @@ export async function signUp(registerNumber, password) {
 }
 
 export async function signOut() {
-  if (supabase) return supabase.auth.signOut()
+  if (supabase) return supabase.auth.signOut({ scope: 'local' })
 }
 
 export async function getProfile(userId) {

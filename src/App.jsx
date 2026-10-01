@@ -7,6 +7,7 @@ import { getCourses } from './services/courseService'
 import { getCreditPolicies } from './services/creditPolicyService'
 import { getCreditBands } from './services/creditBandService'
 import { getCompetencyAnalyses } from './services/analysisService'
+import { normalizeRegisterNumber, universityEmail, validateStudentRegistration } from './services/authService'
 import { supabase } from './lib/supabase'
 
 const studentNav = [
@@ -41,13 +42,65 @@ function AppLayout() {
 }
 
 function Login() {
-  const auth = useAuth(); const navigate = useNavigate(); const [mode, setMode] = useState('signIn'); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false)
+  const auth = useAuth(); const navigate = useNavigate(); const [mode, setMode] = useState('signIn'); const [registerNumber, setRegisterNumber] = useState(''); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [confirmPassword, setConfirmPassword] = useState(''); const [error, setError] = useState(''); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false)
   if (auth.loading) return <Loading message="Loading CSP..." />
   if (auth.user) return <Navigate to={auth.role === 'faculty' ? '/faculty' : '/student'} replace />
-  async function submit(event) { event.preventDefault(); setError(''); setMessage(''); setBusy(true); try { if (mode === 'signIn') { await auth.signIn(email.trim(), password); navigate('/'); } else { const result = await auth.signUp(email.trim(), password); if (result.session) navigate('/'); else setMessage(`Account created for ${email.trim().replace(/@klu\.ac\.in$/i, '')}@klu.ac.in. Check your university email to confirm your account.`) } } catch (problem) { setError(problem.message || `Unable to ${mode === 'signIn' ? 'sign in' : 'create your account'}.`) } finally { setBusy(false) } }
+
+  async function submit(event) {
+    event.preventDefault(); setError(''); setMessage(''); setBusy(true)
+    try {
+      if (mode === 'signIn') {
+        await auth.signIn(email.trim(), password)
+        navigate('/')
+        return
+      }
+
+      const normalizedRegisterNumber = normalizeRegisterNumber(registerNumber)
+      const normalizedEmail = email.trim().toLowerCase()
+
+      if (!normalizedRegisterNumber || !/^\d+$/.test(normalizedRegisterNumber)) {
+        throw new Error('Register number must contain only digits.')
+      }
+
+      if (!normalizedEmail || !normalizedEmail.endsWith('@klu.ac.in')) {
+        throw new Error('Use a valid university email in the format registernumber@klu.ac.in.')
+      }
+
+      if (normalizedEmail !== universityEmail(normalizedRegisterNumber).toLowerCase()) {
+        throw new Error('The university email must match the register number.')
+      }
+
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters long.')
+      }
+
+      if (password !== confirmPassword) {
+        throw new Error('Passwords do not match.')
+      }
+
+      const { data: validStudent, error: studentValidationError } = await validateStudentRegistration(normalizedRegisterNumber)
+      if (studentValidationError) throw studentValidationError
+      if (!validStudent) {
+        throw new Error('Register number not found. Please contact the university administrator.')
+      }
+
+      const result = await auth.signUp(normalizedRegisterNumber, password)
+      if (result.session) {
+        navigate('/')
+      } else {
+        setMessage(`Registration successful for ${universityEmail(normalizedRegisterNumber)}. Please verify your email before signing in.`)
+      }
+    } catch (problem) {
+      setError(problem.message || `Unable to ${mode === 'signIn' ? 'sign in' : 'create your account'}.`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   function switchMode(nextMode) { setMode(nextMode); setError(''); setMessage('') }
   const isSignIn = mode === 'signIn'
-  return <main className="login-page"><section className="login-panel"><div className="brand login-brand"><div className="brand-mark">CSP</div><div><strong>Competency-Based</strong><span>Credit System</span></div></div><div className="login-copy"><p className="eyebrow">UNIVERSITY ACADEMIC SYSTEM</p><h1>{isSignIn ? 'Academic insight, grounded in evidence.' : 'Create your academic access.'}</h1><p>{isSignIn ? 'Sign in with your university email to access your authorized academic records.' : 'Enter your register number. CSP will use it as your university email and match your academic record.'}</p></div><div className="auth-tabs" role="tablist" aria-label="Authentication options"><button className={isSignIn ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('signIn')} type="button" role="tab" aria-selected={isSignIn}>Sign in</button><button className={!isSignIn ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('signUp')} type="button" role="tab" aria-selected={!isSignIn}>Create account</button></div><form onSubmit={submit}><label htmlFor="email">{isSignIn ? 'University email' : 'Register number'}</label><input id="email" type={isSignIn ? 'email' : 'text'} value={email} onChange={(event) => setEmail(event.target.value)} placeholder={isSignIn ? 'registernumber@klu.ac.in' : 'Register number'} autoComplete={isSignIn ? 'email' : 'username'} required />{!isSignIn && <p className="field-note">Your university email will be {email.trim().replace(/@klu\.ac\.in$/i, '') || 'registernumber'}@klu.ac.in</p>}<label htmlFor="password">Password</label><input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={isSignIn ? 'current-password' : 'new-password'} minLength={6} required />{error && <div className="form-error" role="alert">{error}</div>}{message && <div className="form-message" role="status">{message}</div>}<button className="primary-button" disabled={busy || !supabase}>{busy ? (isSignIn ? 'Signing in...' : 'Creating account...') : (isSignIn ? 'Sign in' : 'Create account')}<ChevronRight size={17} /></button>{!supabase && <p className="config-note">Supabase configuration is missing. Add the VITE environment variables to enable authentication.</p>}</form><p className="login-foot">Access is governed by your university role and database permissions.</p></section></main>
+  const autoEmail = registerNumber ? universityEmail(registerNumber) : ''
+  return <main className="login-page"><section className="login-panel"><div className="brand login-brand"><div className="brand-mark">CSP</div><div><strong>Competency-Based</strong><span>Credit System</span></div></div><div className="login-copy"><p className="eyebrow">UNIVERSITY ACADEMIC SYSTEM</p><h1>{isSignIn ? 'Academic insight, grounded in evidence.' : 'Create your academic access.'}</h1><p>{isSignIn ? 'Sign in with your university email to access your authorized academic records.' : 'Enter your register number, university email, and password to secure your academic access.'}</p></div><div className="auth-tabs" role="tablist" aria-label="Authentication options"><button className={isSignIn ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('signIn')} type="button" role="tab" aria-selected={isSignIn}>Sign in</button><button className={!isSignIn ? 'auth-tab active' : 'auth-tab'} onClick={() => switchMode('signUp')} type="button" role="tab" aria-selected={!isSignIn}>Create account</button></div><form onSubmit={submit}>{!isSignIn && <><label htmlFor="registerNumber">Register number</label><input id="registerNumber" type="text" value={registerNumber} onChange={(event) => setRegisterNumber(event.target.value)} autoComplete="username" placeholder="99240040514" required /><label htmlFor="email">University email</label><input id="email" type="email" value={email || autoEmail} onChange={(event) => setEmail(event.target.value)} placeholder="99240040514@klu.ac.in" autoComplete="email" required /></>}{isSignIn && <><label htmlFor="email">University email</label><input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="registernumber@klu.ac.in" autoComplete="email" required /></>}{!isSignIn && <p className="field-note">Your account email should match {autoEmail || 'registernumber@klu.ac.in'}.</p>}<label htmlFor="password">Password</label><input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={isSignIn ? 'current-password' : 'new-password'} minLength={6} required />{!isSignIn && <><label htmlFor="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" minLength={6} required /></>}{error && <div className="form-error" role="alert">{error}</div>}{message && <div className="form-message" role="status">{message}</div>}<button className="primary-button" disabled={busy || !supabase}>{busy ? (isSignIn ? 'Signing in...' : 'Creating account...') : (isSignIn ? 'Sign in' : 'Create account')}<ChevronRight size={17} /></button>{!supabase && <p className="config-note">Supabase configuration is missing. Add the VITE environment variables to enable authentication.</p>}</form><p className="login-foot">Access is governed by your university role and database permissions.</p></section></main>
 }
 
 function StudentDashboard({ faculty = false }) {

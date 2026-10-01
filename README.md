@@ -9,6 +9,20 @@ npm run dev
 
 The Vite client reads `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_SITE_URL`. Set `VITE_SITE_URL` to the deployed frontend URL so Supabase confirmation emails return to the correct application. Never put a Supabase service-role key in this file or in browser code.
 
+## AI competency insights
+
+The student competency page includes an optional question-driven AI explanation layer at `/api/ai/competency-insights`. The endpoint derives the authenticated student from the Supabase bearer session and reads only that student's existing academic competency data. It never accepts a trusted `student_id` from the browser and never calculates official competency scores, percentiles, or credits.
+
+Configure these server-side variables for local development and the backend deployment. `OPENROUTER_API_KEY` must never use a `VITE_` prefix and must not be placed in React code, browser storage, or the database:
+
+```env
+OPENROUTER_API_KEY=your-openrouter-api-key
+OPENROUTER_MODEL=your-openrouter-model
+OPENROUTER_SITE_URL=https://creditcalculationsystem.vercel.app
+```
+
+For Vercel, the `api/ai/competency-insights.js` function is deployed automatically. Add the three OpenRouter variables and the existing Supabase variables in the Vercel project environment settings for the relevant environments. During local `npm run dev`, the same handler is mounted by `vite.config.js`.
+
 In Supabase Dashboard, open **Authentication > URL Configuration** and set **Site URL** to `https://creditcalculationsystem.vercel.app`. Add `https://creditcalculationsystem.vercel.app/**` to **Redirect URLs**. Add your local Vite URL separately only if local email testing is needed.
 
 ## Database setup

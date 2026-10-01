@@ -54,12 +54,12 @@ function Login() {
         await auth.signIn(email.trim(), password)
         navigate('/')
         return
-        const [question, setQuestion] = useState('')
-        const [messages, setMessages] = useState([])
-        const [answer, setAnswer] = useState(null)
-        const [evidence, setEvidence] = useState([])
-        const [aiStatus, setAiStatus] = useState('idle')
-        const [aiError, setAiError] = useState('')
+      }
+
+      const normalizedRegisterNumber = normalizeRegisterNumber(registerNumber)
+      const normalizedEmail = (email || universityEmail(normalizedRegisterNumber)).trim().toLowerCase()
+
+      if (!normalizedRegisterNumber || !/^\d+$/.test(normalizedRegisterNumber)) {
         throw new Error('Register number must contain only digits.')
       }
 

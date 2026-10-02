@@ -29,15 +29,16 @@ function gradeEvidence(grade) {
 }
 
 function compactCourse(course) {
+  const source = course && typeof course === 'object' ? course : {}
   return {
-    course_code: course.course_code ?? null,
-    course_name: course.course_name ?? null,
-    credits: course.credits ?? null,
-    grade: normalizedGrade(course.grade),
-    semester: course.semester ?? null,
-    competency_category: course.competency_category ?? course.competency ?? null,
-    competency_evidence: course.competency_evidence ?? gradeEvidence(course.grade),
-    course_outcomes: Array.isArray(course.course_outcomes) ? course.course_outcomes.map((outcome) => ({
+    course_code: source.course_code ?? null,
+    course_name: source.course_name ?? null,
+    credits: source.credits ?? null,
+    grade: normalizedGrade(source.grade),
+    semester: source.semester ?? null,
+    competency_category: source.competency_category ?? source.competency ?? null,
+    competency_evidence: source.competency_evidence ?? gradeEvidence(source.grade),
+    course_outcomes: Array.isArray(source.course_outcomes) ? source.course_outcomes.map((outcome) => ({
       co_code: outcome.co_code ?? null,
       co_description: outcome.co_description ?? null,
       evidence: outcome.evidence ?? null,
@@ -148,7 +149,7 @@ export async function competencyInsightsHandler(request, response) {
   if (studentError || recordError) return jsonResponse(response, 500, { error: 'Unable to load your competency data.' })
 
   const completedCourses = Array.isArray(record?.completed_courses) ? record.completed_courses : []
-  const courseCodes = completedCourses.map((course) => String(course.course_code ?? '').trim()).filter(Boolean)
+  const courseCodes = completedCourses.filter((course) => course && typeof course === 'object').map((course) => String(course.course_code ?? '').trim()).filter(Boolean)
   let outcomesByCourse = new Map()
   if (courseCodes.length) {
     const { data: courseDefinitions } = await supabase.from('courses').select('id, course_code').in('course_code', courseCodes)
@@ -168,7 +169,7 @@ export async function competencyInsightsHandler(request, response) {
 
   const enrichedRecord = {
     ...record,
-    completed_courses: completedCourses.map((course) => ({
+    completed_courses: completedCourses.filter((course) => course && typeof course === 'object').map((course) => ({
       ...course,
       course_outcomes: outcomesByCourse.get(String(course.course_code ?? '').trim().toUpperCase()) ?? course.course_outcomes ?? [],
     })),

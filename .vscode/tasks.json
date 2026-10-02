@@ -32,6 +32,22 @@
 			"isBackground": false,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "Validate AI endpoint hardening",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Preview AI endpoint fix",
+			"type": "shell",
+			"command": "npm run dev -- --host 0.0.0.0 --port 5175",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
 		}
 	]
 }

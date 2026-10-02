@@ -11,7 +11,8 @@ function competencyInsightsApi() {
           next()
           return
         }
-        competencyInsightsHandler(request, response).catch(() => {
+        competencyInsightsHandler(request, response).catch((error) => {
+          console.error('[competency-insights]', error)
           if (!response.headersSent) {
             response.statusCode = 500
             response.setHeader('Content-Type', 'application/json')

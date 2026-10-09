@@ -48,6 +48,127 @@
 			"isBackground": true,
 			"problemMatcher": [],
 			"group": "build"
+		},
+		{
+			"label": "Build production deployment",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Vercel API import",
+			"type": "shell",
+			"command": "node -e \"import('./api/ai/competency-insights.js').then(() => console.log('Vercel API import OK'))\"",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Check Vercel API module",
+			"type": "shell",
+			"command": "node -e \"import('./api/ai/competency-insights.js').then(() => console.log('Vercel API import OK'))\"",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Production RAG build",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "RAG retrieval smoke test",
+			"type": "shell",
+			"command": "node server/ragRetrievalSmoke.mjs",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Rerun RAG retrieval smoke test",
+			"type": "shell",
+			"command": "node server/ragRetrievalSmoke.mjs",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Final production build",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Preview current RAG build",
+			"type": "shell",
+			"command": "npm run dev -- --host 0.0.0.0 --port 5176",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build floating RAG chatbot",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Preview updated chatbot",
+			"type": "shell",
+			"command": "npm run dev -- --host 0.0.0.0 --port 5177",
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Build faculty chat extension",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run retrieval smoke test",
+			"type": "shell",
+			"command": "node server/ragRetrievalSmoke.mjs",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Build pre-vector RAG foundation",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run existing RAG smoke",
+			"type": "shell",
+			"command": "node server/ragRetrievalSmoke.mjs",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Run role-aware RAG evaluation",
+			"type": "shell",
+			"command": "node server/ragEvaluation.mjs",
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
 		}
 	]
 }

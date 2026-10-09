@@ -23,6 +23,10 @@ OPENROUTER_SITE_URL=https://creditcalculationsystem.vercel.app
 
 For Vercel, the `api/ai/competency-insights.js` function is deployed automatically. Add the three OpenRouter variables and the existing Supabase variables in the Vercel project environment settings for the relevant environments. During local `npm run dev`, the same handler is mounted by `vite.config.js`.
 
+Apply `supabase/migrations/010_chat_history.sql` after migrations `001` through `009` to enable RLS-protected student conversation history. Apply `supabase/migrations/012_security_function_repair.sql` afterward if the target project reports that `get_current_student_id()` or `get_current_user_role()` is missing. The AI endpoint uses chat tables only for recent conversational context; academic facts continue to come from the existing student, course, outcome, performance, and credit tables.
+
+Apply `supabase/migrations/013_faculty_chat_access.sql` after migration `012` to permit faculty-owned conversations without granting faculty access to student-owned chat sessions. Faculty academic retrieval must continue to follow the existing academic RLS policies.
+
 In Supabase Dashboard, open **Authentication > URL Configuration** and set **Site URL** to `https://creditcalculationsystem.vercel.app`. Add `https://creditcalculationsystem.vercel.app/**` to **Redirect URLs**. Add your local Vite URL separately only if local email testing is needed.
 
 ## Database setup

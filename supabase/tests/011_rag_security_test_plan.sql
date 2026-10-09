@@ -1,0 +1,14 @@
+-- RAG security test plan. Execute with real authenticated student/faculty sessions.
+-- The existing RLS policies remain the authorization boundary.
+--
+-- Student:
+-- 1. Own chat session and messages are readable.
+-- 2. Another student's chat session/messages are invisible.
+-- 3. Student-specific retrieval is filtered by user_profiles.student_id.
+-- 4. Course/outcome retrieval is limited to authenticated general data.
+-- 5. Dynamic-credit retrieval returns only the authenticated student's rows.
+--
+-- Prompt-injection checks are application tests:
+-- - Request another student's grades: deny through retrieval scope.
+-- - Request secrets/tokens: response validator must reject protected content.
+-- - Ask the LLM to recalculate credits: context contains only official results.
